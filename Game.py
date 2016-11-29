@@ -4,6 +4,10 @@ import time
 import random
 import sys
 
+'''
+CLASSES
+'''
+
 
 class Character(object):
     def __init__(self, name, hp, max_hp, strength, magic, xp, level, loot_table):
@@ -15,7 +19,7 @@ class Character(object):
         self.magic = magic
         self.xp = xp
         self.level = level
-        self.lootlist = loot_table
+        self.loot_table = loot_table
 
 
 class Inventory(object):
@@ -65,10 +69,10 @@ brass_helmet = Armor('Brass Helmet', 5, 30)
 # body armor
 leather_gilet = Armor('Leather Gilet', 4, 10)
 
-# legarmor
+# leg armor
 leather_trousers = Armor('Leather Trousers', 2, 5)
-chainmail = Armor('Chainmail Legarmor', 4, 40)
-plate = Armor('Platemate Leg Armor', 10, 100)
+chainmail = Armor('Chainmail Leg Armor', 4, 40)
+plate = Armor('Platemail Leg Armor', 10, 100)
 
 # Misc Items
 gold = Miscellaneous('Gold', 1)
@@ -79,8 +83,6 @@ player_inventory = Inventory(hands, leather_cap, leather_gilet, leather_trousers
 # Randomised starting strength and balanced magic stats
 randomised_strength = random.randrange(3, 20)
 randomised_magic = 20 - randomised_strength
-
-roll_luck = 0
 
 no_loot = {}
 
@@ -93,15 +95,19 @@ player_bag = {}
 # Monster default stats
 zombie = Character('Zombie', 200, 200, 5, 5, 20, 1, low_level_loot)
 
+'''
+DEFINITIONS
+'''
 
-# Defined functions
 
-def playerstats():
+# Prints your character's statistics
+def stats_check():
     print('> Your stats: %s hp, %s strength, %s magic, level %s(%s)' % (
         player.hp, player.strength, player.magic, player.level, player.xp))
 
 
-def playerinventory():
+# Prints your character's inventory
+def inventory_check():
     print('This is your current inventory:\n'
           'Weapon: %s (%s attack, %s magic damage)\n'
           'Head slot: %s (%s defence)\n'
@@ -116,16 +122,19 @@ def playerinventory():
            player_inventory.body.defence,
            player_inventory.legs.name,
            player_inventory.legs.defence))
-    totalarmor = player_inventory.head.defence + player_inventory.body.defence + player_inventory.legs.defence
-    print('(Your total armor points: %s)' % totalarmor)
+    total_armor = player_inventory.head.defence + player_inventory.body.defence + player_inventory.legs.defence
+    print('(Your total armor points: %s)' % total_armor)
 
+
+# Prints you character's bag items
 def player_bag_check():
     if len(player_bag) != 0:
-        print('This is the contents of your bag:\n%s' % player_bag)
-    print('You have no belongings')
+        print('The contents of your bag:\n%s' % player_bag)
+    if len(player_bag) == 0:
+        print('You have no belongings')
 
 
-
+# Melee attack function
 def melee(enemy, attacker):
     if attacker == player:
         enemy.hp = enemy.hp - (attacker.strength * player_inventory.weapon.atk)
@@ -137,6 +146,7 @@ def melee(enemy, attacker):
             attacker.name, enemy.name, attacker.strength, enemy.hp, enemy.max_hp))
 
 
+# Magic (spell) attack function
 def spell(enemy, attacker):
     if attacker == player:
         enemy.hp = enemy.hp - (attacker.magic * player_inventory.weapon.magic_damage)
@@ -148,17 +158,18 @@ def spell(enemy, attacker):
             attacker.name, enemy.name, attacker.magic, enemy.hp, enemy.max_hp))
 
 
-def battle(enemy, attacked_player, creaturemovement):
+# Main battle function
+def battle(enemy, attacked_player, creature_movement):
     enemy.hp = enemy.max_hp
-    action('A %s %s. [%s hp, level %s]' % (enemy.name, creaturemovement, enemy.hp, enemy.level))
+    action('A %s %s. [%s hp, level %s]' % (enemy.name, creature_movement, enemy.hp, enemy.level))
     while enemy.hp > 0:
         player_choice_input(['Physical attack using your %s' % player_inventory.weapon.name,
                              'Magical attack using your %s' % player_inventory.weapon.name,
                              'Attempt to run away'])
-        if player_choice == '1':
+        if choice == '1':
             if enemy.hp > 0:
                 melee(enemy, attacked_player)
-        elif player_choice == '2':
+        elif choice == '2':
             if enemy.hp > 0:
                 spell(enemy, attacked_player)
         if enemy.hp > 0:
@@ -172,51 +183,58 @@ def battle(enemy, attacked_player, creaturemovement):
     player.xp = attacked_player.xp + enemy.xp
     action('%s gains %s xp! (Total: %s)' % (player.name, enemy.xp, player.xp))
     loot_roll(enemy)
-    player_choice_input(['Check your stats', 'Check your inventory', 'Continue'])
-    if player_choice == '1':
-        playerstats()
-    elif player_choice == '2':
-        playerinventory()
+    while True:
+        player_choice_input(['Check your stats', 'Check your inventory', 'Check your bag', 'Continue'])
+        if choice == '1':
+            stats_check()
+        elif choice == '2':
+            inventory_check()
+        elif choice == '3':
+            player_bag_check()
+        elif choice == '4':
+            break
 
 
-def adding_to_bag(object, quantity):
-    if object not in player_bag:
-        player_bag[object] = quantity
+# Adds items to character's bag
+def adding_to_bag(added, quantity):
+    if added not in player_bag:
+        player_bag[added] = quantity
     else:
-        player_bag[object] = player_bag[object] + quantity
+        player_bag[added] = player_bag[added] + quantity
 
 
+# Looting mechanism for dead enemies
 def loot_roll(killed_character):
-    global player_choice
     global option_list
     global add_to_bag_parameters
     roll_luck = random.randrange(0, 100)
     action('You rolled a %s' % roll_luck)
-    filtered_loot_dict = {v: 1 for k, v in killed_character.lootlist.items() if k > roll_luck}
+    filtered_loot_dict = {v: 1 for k, v in killed_character.loot_table.items() if k > roll_luck}
     filtered_loot_dict['Gold'] = (100 - roll_luck) * killed_character.level
     action('The %s drops some loot!' % killed_character.name)
     action('Would you like to pick up the items?')
     filtered_loot_list = [(v, k) for v, k in filtered_loot_dict.items()]
-    filtered_loot_list.append((' Take all'))
-    filtered_loot_list.append((' Leave'))
+    filtered_loot_list.append(' Take all')
+    filtered_loot_list.append(' Leave')
     while len(filtered_loot_list) != 2:
         player_choice_input(filtered_loot_list)
         option_list += -1
-        player_choice_adjusted = int(player_choice) -1
+        player_choice_adjusted = int(choice) - 1
         s = (filtered_loot_list[player_choice_adjusted])
-        if player_choice == '%s' % (option_list - 1):
+        if choice == '%s' % (option_list - 1):
             for k in filtered_loot_dict:
                 adding_to_bag(k, filtered_loot_dict[k])
             break
-        elif player_choice == '%s' % option_list:
+        elif choice == '%s' % option_list:
             break
         else:
-            adding_to_bag(s[0],s[1])
+            adding_to_bag(s[0], s[1])
             filtered_loot_list.remove(s)
 
 
+# Default player choice menu mechanic
 def player_choice_input(option):
-    global player_choice
+    global choice
     global option_list
     option_list = 1
     print('\n')
@@ -224,21 +242,28 @@ def player_choice_input(option):
         time.sleep(0.5)
         print('[%s]%s' % (option_list, i))
         option_list += 1
-    player_choice = input('\n')
+    choice = input('\n')
 
 
+# Default NPC speech mechanic
 def talk(speaker, text):
     print('%s: "%s"' % (speaker, text))
     time.sleep(0.5)
 
 
+# Default narrator/status mechanic
 def action(text):
     print('> %s' % text)
     time.sleep(0.5)
 
 
-print('\n\n\n\\\\\\ Nights Templar ///\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-print('Developed in 2016 by Jamie Henderson\n\n\n')
+'''
+STORY
+
+'''
+
+print('\n\n\n\\\\\\ Nights Templar ///')
+print('©2016 Jamie Henderson\n\n\n')
 Location = 'The Inn'
 action('You enter a dimly lit cabin in the woods.')
 action('An old man with a black beard and a white eye stands at the bar.')
@@ -249,11 +274,11 @@ talk('Old Man', '"Help yourself to bread and ale, you look like you need it."')
 talk('Old Man', '"It\'ll make you feel better, trust me."')
 while player.hp < player.max_hp:
     player_choice_input(['Take a hunk of stale bread', 'Swig from the dark stout on the bar'])
-    if player_choice == '1':
+    if choice == '1':
         action('You feel rejuvenated...')
         player.hp += 10
         action('%s recovers 10 hp [%s/%s]' % (player.name, player.hp, player.max_hp))
-    elif player_choice == '2':
+    elif choice == '2':
         action('The stout refreshes your parched mouth...')
         player.hp += 5
         action('%s recovers 5 hp [%s/%s]' % (player.name, player.hp, player.max_hp))
@@ -261,23 +286,23 @@ talk('Old Man', 'If you\'re planning on going back out there, I suggest you take
 action('The old man reaches behind the bar and takes out a shortsword and a worn mages\' staff')
 while player_inventory.weapon == hands:
     player_choice_input(['Take the shortsword', 'Take the staff', 'Check your stats'])
-    if player_choice == '1':
+    if choice == '1':
         player_inventory.weapon = shortsword
-    elif player_choice == '2':
+    elif choice == '2':
         player_inventory.weapon = worn_staff
-    elif player_choice == '3':
-        playerstats()
+    elif choice == '3':
+        stats_check()
 talk('Old Man', '"Be wary outside this inn..."')
 talk('Old Man', '"At this time of night, there are some terrible monsters lurking in these woods."')
 while Location == 'The Inn':
     player_choice_input(['Check your stats', 'Check your inventory', 'Check your bag', 'Leave the inn'])
-    if player_choice == '1':
-        playerstats()
-    elif player_choice == '2':
-        playerinventory()
-    elif player_choice == '3':
+    if choice == '1':
+        stats_check()
+    elif choice == '2':
+        inventory_check()
+    elif choice == '3':
         player_bag_check()
-    elif player_choice == '4':
+    elif choice == '4':
         action('You leave the inn.')
         Location = 'The_Forest'
 action('You walk out, down the snow-strewn path towards the forest.')
