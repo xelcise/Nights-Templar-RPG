@@ -4,10 +4,8 @@ import time
 import random
 import sys
 
-'''
-CLASSES
-'''
 
+# Classes
 
 class Character(object):
     def __init__(self, name, hp, max_hp, strength, magic, xp, level, loot_table):
@@ -55,6 +53,8 @@ class Miscellaneous(Inventory):
         self.value = value
 
 
+# In game items
+
 # melee weapons
 hands = Weapon('Bare Hands', 1, 0, 0)
 shortsword = Weapon('Shortsword', 5, 0, 5)
@@ -86,7 +86,7 @@ randomised_magic = 20 - randomised_strength
 
 no_loot = {}
 
-low_level_loot = {80: gold.name, 40: leather_cap.name, 50: shortsword.name, 5: plate.name}
+low_level_loot = {70: leather_cap.name, 80: shortsword.name, 5: plate.name}
 
 # Character default stats
 player = Character('Player', 100, 120, randomised_strength, randomised_magic, 0, 1, no_loot)
@@ -95,19 +95,15 @@ player_bag = {}
 # Monster default stats
 zombie = Character('Zombie', 200, 200, 5, 5, 20, 1, low_level_loot)
 
-'''
-DEFINITIONS
-'''
 
+# Functions
 
-# Prints your character's statistics
-def stats_check():
+def stats_check():  # Prints your character's statistics
     print('> Your stats: %s hp, %s strength, %s magic, level %s(%s)' % (
         player.hp, player.strength, player.magic, player.level, player.xp))
 
 
-# Prints your character's inventory
-def inventory_check():
+def inventory_check():  # Prints your character's inventory
     print('This is your current inventory:\n'
           'Weapon: %s (%s attack, %s magic damage)\n'
           'Head slot: %s (%s defence)\n'
@@ -126,16 +122,14 @@ def inventory_check():
     print('(Your total armor points: %s)' % total_armor)
 
 
-# Prints you character's bag items
-def player_bag_check():
+def player_bag_check(): # Prints you character's bag items
     if len(player_bag) != 0:
         print('The contents of your bag:\n%s' % player_bag)
     if len(player_bag) == 0:
         print('You have no belongings')
 
 
-# Melee attack function
-def melee(enemy, attacker):
+def melee(enemy, attacker): # Melee attack function
     if attacker == player:
         enemy.hp = enemy.hp - (attacker.strength * player_inventory.weapon.atk)
         action('%s attacks the %s, doing %s points of damage [%s/%s]' % (
@@ -146,10 +140,11 @@ def melee(enemy, attacker):
             attacker.name, enemy.name, attacker.strength, enemy.hp, enemy.max_hp))
 
 
-# Magic (spell) attack function
-def spell(enemy, attacker):
+def spell(enemy, attacker): # Magic (spell) attack function
+
     if attacker == player:
-        enemy.hp = enemy.hp - (attacker.magic * player_inventory.weapon.magic_damage)
+        spell_damage = attacker.magic * player_inventory.weapon.magic_damage
+        enemy.hp = enemy.hp - spell_damage
         action('%s attacks the %s, doing %s points of damage [%s/%s]' % (
             attacker.name, enemy.name, attacker.magic * player_inventory.weapon.magic_damage, enemy.hp, enemy.max_hp))
     else:
@@ -158,8 +153,7 @@ def spell(enemy, attacker):
             attacker.name, enemy.name, attacker.magic, enemy.hp, enemy.max_hp))
 
 
-# Main battle function
-def battle(enemy, attacked_player, creature_movement):
+def battle(enemy, attacked_player, creature_movement): # Main battle function
     enemy.hp = enemy.max_hp
     action('A %s %s. [%s hp, level %s]' % (enemy.name, creature_movement, enemy.hp, enemy.level))
     while enemy.hp > 0:
@@ -195,16 +189,14 @@ def battle(enemy, attacked_player, creature_movement):
             break
 
 
-# Adds items to character's bag
-def adding_to_bag(added, quantity):
+def adding_to_bag(added, quantity): # Adds items to character's bag
     if added not in player_bag:
         player_bag[added] = quantity
     else:
         player_bag[added] = player_bag[added] + quantity
 
 
-# Looting mechanism for dead enemies
-def loot_roll(killed_character):
+def loot_roll(killed_character): # Looting mechanism for dead enemies
     global option_list
     global add_to_bag_parameters
     roll_luck = random.randrange(0, 100)
@@ -232,8 +224,7 @@ def loot_roll(killed_character):
             filtered_loot_list.remove(s)
 
 
-# Default player choice menu mechanic
-def player_choice_input(option):
+def player_choice_input(option):  # Player choice menu
     global choice
     global option_list
     option_list = 1
@@ -242,25 +233,23 @@ def player_choice_input(option):
         time.sleep(0.5)
         print('[%s]%s' % (option_list, i))
         option_list += 1
-    choice = input('\n')
+    choice = input('\n> ')
 
 
-# Default NPC speech mechanic
-def talk(speaker, text):
-    print('%s: "%s"' % (speaker, text))
-    time.sleep(0.5)
+def talk(speaker, text):  # Default NPC speech
+    print('%s: %s' % (speaker, text))
+    time.sleep(1)
 
 
-# Default narrator/status mechanic
-def action(text):
+def action(text):  # Default narrator/status
     print('> %s' % text)
-    time.sleep(0.5)
+    time.sleep(1)
 
 
-'''
-STORY
+battle(zombie, player, 'staggers towards you')
 
-'''
+
+# Story
 
 print('\n\n\n\\\\\\ Nights Templar ///')
 print('©2016 Jamie Henderson\n\n\n')
@@ -268,10 +257,10 @@ Location = 'The Inn'
 action('You enter a dimly lit cabin in the woods.')
 action('An old man with a black beard and a white eye stands at the bar.')
 talk('Old Man', 'Greetings stranger... I haven\'t seen you around these parts. What\'s your name?')
-player.name = input('')
-talk('Old Man', '"Well then... %s, welcome to my inn."' % player.name)
-talk('Old Man', '"Help yourself to bread and ale, you look like you need it."')
-talk('Old Man', '"It\'ll make you feel better, trust me."')
+player.name = input('\n> ')
+talk('Old Man', 'Well then... %s, welcome to my inn.' % player.name)
+talk('Old Man', 'Help yourself to bread and ale, you look like you need it.')
+talk('Old Man', 'It\'ll make you feel better, trust me.')
 while player.hp < player.max_hp:
     player_choice_input(['Take a hunk of stale bread', 'Swig from the dark stout on the bar'])
     if choice == '1':
@@ -308,6 +297,7 @@ while Location == 'The Inn':
 action('You walk out, down the snow-strewn path towards the forest.')
 action('A rustling in the distance catches your attention.')
 battle(zombie, player, 'lurches onto the path')
+action('What in the world was that?')
 action('You hear something else...')
 battle(zombie, player, 'staggers towards you')
 action('Not another one!')
