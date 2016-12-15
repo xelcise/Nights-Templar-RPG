@@ -5,97 +5,6 @@ import random
 import sys
 
 
-# Classes
-
-class Character(object):
-    def __init__(self, name, hp, max_hp, strength, magic, xp, level, loot_table):
-        super(Character, self).__init__()
-        self.name = name
-        self.hp = hp
-        self.max_hp = max_hp
-        self.strength = strength
-        self.magic = magic
-        self.xp = xp
-        self.level = level
-        self.loot_table = loot_table
-
-
-class Inventory(object):
-    def __init__(self, weapon, head, body, legs):
-        super(Inventory, self).__init__()
-        self.weapon = weapon
-        self.head = head
-        self.body = body
-        self.legs = legs
-
-
-class Weapon(Inventory):
-    def __init__(self, name, atk, magic_damage, value):
-        super(Inventory, self).__init__()
-        self.name = name
-        self.atk = atk
-        self.magic_damage = magic_damage
-        self.value = value
-
-
-class Armor(Inventory):
-    def __init__(self, name, defence, value):
-        super(Inventory, self).__init__()
-        self.name = name
-        self.defence = defence
-        self.value = value
-
-
-class Miscellaneous(Inventory):
-    def __init__(self, name, value):
-        super(Inventory, self).__init__()
-        self.name = name
-        self.value = value
-
-
-# In game items
-
-# melee weapons
-hands = Weapon('Bare Hands', 1, 0, 0)
-shortsword = Weapon('Shortsword', 5, 0, 5)
-
-# magic weapons
-worn_staff = Weapon('Worn Staff', 1, 5, 5)
-
-# head armor
-leather_cap = Armor('Leather Cap', 2, 2)
-brass_helmet = Armor('Brass Helmet', 5, 30)
-
-# body armor
-leather_gilet = Armor('Leather Gilet', 4, 10)
-
-# leg armor
-leather_trousers = Armor('Leather Trousers', 2, 5)
-chainmail = Armor('Chainmail Leg Armor', 4, 40)
-plate = Armor('Platemail Leg Armor', 10, 100)
-
-# Misc Items
-gold = Miscellaneous('Gold', 1)
-
-# starting player inventory
-player_inventory = Inventory(hands, leather_cap, leather_gilet, leather_trousers)
-
-# Randomised starting strength and balanced magic stats
-randomised_strength = random.randrange(3, 20)
-randomised_magic = 20 - randomised_strength
-
-no_loot = {}
-
-low_level_loot = {70: leather_cap.name, 80: shortsword.name, 5: plate.name}
-
-# Character default stats
-player = Character('Player', 100, 120, randomised_strength, randomised_magic, 0, 1, no_loot)
-player_bag = {}
-
-# Monster default stats
-zombie = Character('Zombie', 200, 200, 5, 5, 20, 1, low_level_loot)
-
-
 # Functions
 
 def stats_check():  # Prints your character's statistics
@@ -124,9 +33,25 @@ def inventory_check():  # Prints your character's inventory
 
 def player_bag_check(): # Prints you character's bag items
     if len(player_bag) != 0:
-        print('The contents of your bag:\n%s' % player_bag)
+        action('The contents of your bag:\n%s' % player_bag)
+        player_choice_input(['Equip an Item','Close'])
+        print('%s' % player_bag)
+        print (your_dict)
+        if choice == '1':
+            action('What sort of item would you like to equip?')
+            player_choice_input(['Weapon','Head','Body', 'Leg'])
+            if choice == '1':
+
+                print('Weapon')
+
+            if choice == '2':
+                print('Head')
+            if choice == '3':
+                print('Body')
+        if choice == '2':
+            pass
     if len(player_bag) == 0:
-        print('You have no belongings')
+        action('You have no belongings')
 
 
 def melee(enemy, attacker): # Melee attack function
@@ -246,6 +171,104 @@ def action(text):  # Default narrator/status
     time.sleep(1)
 
 
+# Classes
+
+class Character(object):
+    def __init__(self, name, hp, max_hp, strength, magic, xp, level, loot_table):
+        super(Character, self).__init__()
+        self.name = name
+        self.hp = hp
+        self.max_hp = max_hp
+        self.strength = strength
+        self.magic = magic
+        self.xp = xp
+        self.level = level
+        self.loot_table = loot_table
+
+
+class Inventory(object):
+    def __init__(self, weapon, head, body, legs):
+        super(Inventory, self).__init__()
+        self.weapon = weapon
+        self.head = head
+        self.body = body
+        self.legs = legs
+
+
+class Weapon(Inventory):
+    def __init__(self, name, atk, magic_damage, value):
+        super(Inventory, self).__init__()
+        self.name = name
+        self.atk = atk
+        self.magic_damage = magic_damage
+        self.value = value
+
+    def __str__(self):
+        return "Weapon"
+
+
+class Armor(Inventory):
+    def __init__(self, name, defence, value):
+        super(Inventory, self).__init__()
+        self.name = name
+        self.defence = defence
+        self.value = value
+
+
+class Miscellaneous(Inventory):
+    def __init__(self, name, value):
+        super(Inventory, self).__init__()
+        self.name = name
+        self.value = value
+
+
+# In game items
+
+# melee weapons
+hands = Weapon('Bare Hands', 1, 0, 0)
+shortsword = Weapon('Shortsword', 5, 0, 5)
+
+# magic weapons
+worn_staff = Weapon('Worn Staff', 1, 5, 5)
+
+# head armor
+leather_cap = Armor('Leather Cap', 2, 2)
+brass_helmet = Armor('Brass Helmet', 5, 30)
+
+# body armor
+leather_gilet = Armor('Leather Gilet', 4, 10)
+
+# leg armor
+leather_trousers = Armor('Leather Trousers', 2, 5)
+chainmail = Armor('Chainmail Leg Armor', 4, 40)
+plate = Armor('Platemail Leg Armor', 10, 100)
+
+# Misc Items
+gold = Miscellaneous('Gold', 1)
+
+# starting player inventory
+player_inventory = Inventory(hands, leather_cap, leather_gilet, leather_trousers)
+
+# Randomised starting strength and balanced magic stats
+randomised_strength = random.randrange(3, 20)
+randomised_magic = 20 - randomised_strength
+
+no_loot = {}
+
+low_level_loot = {70: leather_cap.name, 80: shortsword.name, 5: plate.name}
+
+# Character default stats
+player = Character('Player', 100, 120, randomised_strength, randomised_magic, 0, 1, no_loot)
+player_bag = {'Leather Cap': 1, 'brass_helmet':1}
+
+# Monster default stats
+zombie = Character('Zombie', 100, 10, 5, 5, 20, 1, low_level_loot)
+
+
+
+# Testing
+
+player_bag_check()
 battle(zombie, player, 'staggers towards you')
 
 
