@@ -7,9 +7,13 @@ import sys
 
 # Functions
 
+def pausetime():
+    time.sleep(0.75)
+
+
 def stats_check():  # Prints your character's statistics
-    print('> Your stats: %s hp, %s strength, %s magic, level %s(%s)' % (
-        player.hp, player.strength, player.magic, player.level, player.xp))
+    print('> Your stats: %s hp [%s], %s strength, %s magic, level %s(%s)' % (
+        player.hp, player.max_hp, player.strength, player.magic, player.level, player.xp))
 
 
 def inventory_check():  # Prints your character's inventory
@@ -31,30 +35,41 @@ def inventory_check():  # Prints your character's inventory
     print('(Your total armor points: %s)' % total_armor)
 
 
-def player_bag_check(): # Prints you character's bag items
+def player_bag_check():  # Prints you character's bag items
     if len(player_bag) != 0:
-        action('The contents of your bag:\n%s' % player_bag)
-        player_choice_input(['Equip an Item','Close'])
-        print('%s' % player_bag)
-        print (your_dict)
+        action('The contents of your bag:')
+        for k in player_bag:
+            print(k.name)
+        player_choice_input(['Equip an Item', 'Close'])
+        print('%s' % chosen)
         if choice == '1':
             action('What sort of item would you like to equip?')
-            player_choice_input(['Weapon','Head','Body', 'Leg'])
-            if choice == '1':
-
-                print('Weapon')
-
-            if choice == '2':
-                print('Head')
-            if choice == '3':
-                print('Body')
-        if choice == '2':
-            pass
+            player_choice_input(['Weapon', 'Head', 'Body', 'Legs'])
+            equipoption = []
+            equipnames = []
+            equiptype = chosen
+            for k in player_bag:
+                if str(k) == str(chosen):
+                    equipnames.append(k.name)
+                    equipoption.append(k)
+            player_choice_input(equipnames)
+            if equiptype == 'Weapon':
+                player_inventory.weapon = equipoption[int(choice) - 1]
+                action('You have equipped the %s' % player_inventory.weapon.name)
+            if equiptype == 'Head':
+                player_inventory.head = equipoption[int(choice) - 1]
+                action('You have equipped the %s' % player_inventory.head.name)
+            if equiptype == 'Body':
+                player_inventory.body = equipoption[int(choice) - 1]
+                action('You have equipped the %s' % player_inventory.body.name)
+            if equiptype == 'Legs':
+                player_inventory.legs = equipoption[int(choice) - 1]
+                action('You have equipped the %s' % player_inventory.legs.name)
     if len(player_bag) == 0:
         action('You have no belongings')
 
 
-def melee(enemy, attacker): # Melee attack function
+def melee(enemy, attacker):  # Melee attack function
     if attacker == player:
         enemy.hp = enemy.hp - (attacker.strength * player_inventory.weapon.atk)
         action('%s attacks the %s, doing %s points of damage [%s/%s]' % (
@@ -65,8 +80,7 @@ def melee(enemy, attacker): # Melee attack function
             attacker.name, enemy.name, attacker.strength, enemy.hp, enemy.max_hp))
 
 
-def spell(enemy, attacker): # Magic (spell) attack function
-
+def spell(enemy, attacker):  # Magic (spell) attack function
     if attacker == player:
         spell_damage = attacker.magic * player_inventory.weapon.magic_damage
         enemy.hp = enemy.hp - spell_damage
@@ -78,7 +92,18 @@ def spell(enemy, attacker): # Magic (spell) attack function
             attacker.name, enemy.name, attacker.magic, enemy.hp, enemy.max_hp))
 
 
-def battle(enemy, attacked_player, creature_movement): # Main battle function
+def run(enemy):
+    global run_attempt
+    luck_dice(enemy.level - player.level + 2 * 5)
+    if roll_luck < 3:
+        action('You escape!')
+        run_attempt = 'success'
+    else:
+        action('You fail to run away')
+        run_attempt = 'failed'
+
+
+def battle(enemy, attacked_player, creature_movement):  # Main battle function
     enemy.hp = enemy.max_hp
     action('A %s %s. [%s hp, level %s]' % (enemy.name, creature_movement, enemy.hp, enemy.level))
     while enemy.hp > 0:
@@ -86,89 +111,123 @@ def battle(enemy, attacked_player, creature_movement): # Main battle function
                              'Magical attack using your %s' % player_inventory.weapon.name,
                              'Attempt to run away'])
         if choice == '1':
-            if enemy.hp > 0:
-                melee(enemy, attacked_player)
+            melee(enemy, attacked_player)
         elif choice == '2':
-            if enemy.hp > 0:
-                spell(enemy, attacked_player)
+            spell(enemy, attacked_player)
+        if choice == '3':
+            run(enemy)
+            if run_attempt == 'success':
+                break
+                return
         if enemy.hp > 0:
             melee(player, enemy)
         if enemy.hp <= 0:
-            time.sleep(0.5)
+            pausetime()
             action('You have killed the %s' % enemy.name)
         if player.hp <= 0:
             action('You have died, game over.')
             sys.exit()
-    player.xp = attacked_player.xp + enemy.xp
-    action('%s gains %s xp! (Total: %s)' % (player.name, enemy.xp, player.xp))
-    loot_roll(enemy)
-    while True:
-        player_choice_input(['Check your stats', 'Check your inventory', 'Check your bag', 'Continue'])
-        if choice == '1':
-            stats_check()
-        elif choice == '2':
-            inventory_check()
-        elif choice == '3':
-            player_bag_check()
-        elif choice == '4':
-            break
+    if enemy.hp < + 0:
+        player.xp = attacked_player.xp + enemy.xp
+        action('%s gains %s xp! (Total: %s)' % (player.name, enemy.xp, player.xp))
+        loot_roll(enemy)
+        while True:
+            player_choice_input(['Check your stats', 'Check your inventory', 'Check your bag', 'Continue'])
+            if choice == '1':
+                stats_check()
+            elif choice == '2':
+                inventory_check()
+            elif choice == '3':
+                player_bag_check()
+            elif choice == '4':
+                break
 
 
-def adding_to_bag(added, quantity): # Adds items to character's bag
+def adding_to_bag(added, quantity):  # Adds items to character's bag
     if added not in player_bag:
         player_bag[added] = quantity
     else:
         player_bag[added] = player_bag[added] + quantity
 
 
-def loot_roll(killed_character): # Looting mechanism for dead enemies
+def luck_dice(maximum_luck):
+    global roll_luck
+    roll_luck = random.randrange(0, maximum_luck)
+    action('[%s]' % roll_luck)
+
+
+def loot_roll(killed_character):  # Looting mechanism for dead enemies
     global option_list
     global add_to_bag_parameters
-    roll_luck = random.randrange(0, 100)
-    action('You rolled a %s' % roll_luck)
-    filtered_loot_dict = {v: 1 for k, v in killed_character.loot_table.items() if k > roll_luck}
-    filtered_loot_dict['Gold'] = (100 - roll_luck) * killed_character.level
-    action('The %s drops some loot!' % killed_character.name)
-    action('Would you like to pick up the items?')
-    filtered_loot_list = [(v, k) for v, k in filtered_loot_dict.items()]
-    filtered_loot_list.append(' Take all')
-    filtered_loot_list.append(' Leave')
-    while len(filtered_loot_list) != 2:
-        player_choice_input(filtered_loot_list)
-        option_list += -1
-        player_choice_adjusted = int(choice) - 1
-        s = (filtered_loot_list[player_choice_adjusted])
-        if choice == '%s' % (option_list - 1):
-            for k in filtered_loot_dict:
-                adding_to_bag(k, filtered_loot_dict[k])
-            break
-        elif choice == '%s' % option_list:
-            break
-        else:
-            adding_to_bag(s[0], s[1])
-            filtered_loot_list.remove(s)
+    filtered_loot = []
+    for v, k in killed_character.loot_table.items():
+        luck_dice(100)
+        if v > roll_luck:
+            filtered_loot.append(k)
+    gold_dropped = 100 - roll_luck * killed_character.level
+    adding_to_bag(gold, gold_dropped)
+    action('The %s drops %s gold, which you pick up' % (killed_character.name, gold_dropped))
+    if len(filtered_loot) != 0:
+        action('The %s drops some loot!' % killed_character.name)
+        action('Would you like to pick up the items?')
+        while len(filtered_loot) != 0:
+            loot_options = []
+            for item in filtered_loot:
+                loot_options.append(item.name)
+            loot_options.append('Take all')
+            loot_options.append('Leave')
+            player_choice_input(loot_options)
+            if chosen == 'Take all':
+                for item in loot_options:
+                    adding_to_bag(item, 1)
+                    action('You pick up all the items')
+                    return
+            elif chosen == 'Leave':
+                return
+            else:
+                adding = filtered_loot[int(choice) - 1]
+                filtered_loot.pop(int(choice) - 1)
+                adding_to_bag(adding, 1)
+
+
+def healing(healamount, character):
+    if character.max_hp - character.hp > healamount:
+        character.hp = character.hp + healamount
+    else:
+        character.hp = character.max_hp
+    action('%s recovers %s hp [%s/%s]' % (character.name, healamount, character.hp, character.max_hp))
 
 
 def player_choice_input(option):  # Player choice menu
     global choice
+    global chosen
+    global combine_list
     global option_list
     option_list = 1
+    combine_list = []
+    for opt in option:
+        combine_list.append(opt)
     print('\n')
+    pausetime()
     for i in option:
-        time.sleep(0.5)
         print('[%s]%s' % (option_list, i))
         option_list += 1
     choice = input('\n> ')
+    if int(choice) <= option_list - 1:
+        chosen = combine_list[int(choice) - 1]
+    else:
+        action('Option not recognised')
+        player_choice_input(option)
 
 
 def talk(speaker, text):  # Default NPC speech
     print('%s: %s' % (speaker, text))
-    time.sleep(1)
+    pausetime()
 
 
 def action(text):  # Default narrator/status
     print('> %s' % text)
-    time.sleep(1)
+    pausetime()
 
 
 # Classes
@@ -208,11 +267,15 @@ class Weapon(Inventory):
 
 
 class Armor(Inventory):
-    def __init__(self, name, defence, value):
+    def __init__(self, name, defence, value, slot):
         super(Inventory, self).__init__()
         self.name = name
         self.defence = defence
         self.value = value
+        self.slot = slot
+
+    def __str__(self):
+        return str(self.slot)
 
 
 class Miscellaneous(Inventory):
@@ -220,6 +283,9 @@ class Miscellaneous(Inventory):
         super(Inventory, self).__init__()
         self.name = name
         self.value = value
+
+    def __str__(self):
+        return "Miscellaneous"
 
 
 # In game items
@@ -232,22 +298,23 @@ shortsword = Weapon('Shortsword', 5, 0, 5)
 worn_staff = Weapon('Worn Staff', 1, 5, 5)
 
 # head armor
-leather_cap = Armor('Leather Cap', 2, 2)
-brass_helmet = Armor('Brass Helmet', 5, 30)
+none = Armor('Nothing', 0, 0, 'Head')
+leather_cap = Armor('Leather Cap', 2, 2, 'Head')
+brass_helmet = Armor('Brass Helmet', 5, 30, 'Head')
 
 # body armor
-leather_gilet = Armor('Leather Gilet', 4, 10)
+leather_gilet = Armor('Leather Gilet', 4, 10, 'Body')
 
 # leg armor
-leather_trousers = Armor('Leather Trousers', 2, 5)
-chainmail = Armor('Chainmail Leg Armor', 4, 40)
-plate = Armor('Platemail Leg Armor', 10, 100)
+leather_trousers = Armor('Leather Trousers', 2, 5, 'Leg')
+chainmail = Armor('Chainmail Leg Armor', 4, 40, 'Leg')
+plate = Armor('Platemail Leg Armor', 10, 100, 'Leg')
 
 # Misc Items
 gold = Miscellaneous('Gold', 1)
 
 # starting player inventory
-player_inventory = Inventory(hands, leather_cap, leather_gilet, leather_trousers)
+player_inventory = Inventory(hands, none, leather_gilet, leather_trousers)
 
 # Randomised starting strength and balanced magic stats
 randomised_strength = random.randrange(3, 20)
@@ -255,21 +322,14 @@ randomised_magic = 20 - randomised_strength
 
 no_loot = {}
 
-low_level_loot = {70: leather_cap.name, 80: shortsword.name, 5: plate.name}
+low_level_loot = {70: leather_cap, 80: shortsword, 5: plate}
 
 # Character default stats
 player = Character('Player', 100, 120, randomised_strength, randomised_magic, 0, 1, no_loot)
-player_bag = {'Leather Cap': 1, 'brass_helmet':1}
-
+player_bag = {}
 # Monster default stats
-zombie = Character('Zombie', 100, 10, 5, 5, 20, 1, low_level_loot)
-
-
-
-# Testing
-
-player_bag_check()
-battle(zombie, player, 'staggers towards you')
+# name = character (name, hp, maxhp str, mg, xp, lvl)
+zombie = Character('Zombie', 100, 100, 5, 5, 20, 1, low_level_loot)
 
 
 # Story
@@ -288,12 +348,10 @@ while player.hp < player.max_hp:
     player_choice_input(['Take a hunk of stale bread', 'Swig from the dark stout on the bar'])
     if choice == '1':
         action('You feel rejuvenated...')
-        player.hp += 10
-        action('%s recovers 10 hp [%s/%s]' % (player.name, player.hp, player.max_hp))
+        healing(5, player)
     elif choice == '2':
         action('The stout refreshes your parched mouth...')
-        player.hp += 5
-        action('%s recovers 5 hp [%s/%s]' % (player.name, player.hp, player.max_hp))
+        healing(20, player)
 talk('Old Man', 'If you\'re planning on going back out there, I suggest you take one of these.')
 action('The old man reaches behind the bar and takes out a shortsword and a worn mages\' staff')
 while player_inventory.weapon == hands:
