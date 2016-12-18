@@ -1,11 +1,15 @@
 # Nights Templar is a text-based / turn-based RPG idea developed by Jamie Henderson
 
+### SYSTEM IMPORTS ###
+
+
+
 import time
 import random
 import sys
 
 
-# Functions
+### FUNCTIONS ###
 
 def pausetime():
     time.sleep(0.75)
@@ -230,7 +234,7 @@ def action(text):  # Default narrator/status
     pausetime()
 
 
-# Classes
+### CLASSES ###
 
 class Character(object):
     def __init__(self, name, hp, max_hp, strength, magic, xp, level, loot_table):
@@ -277,6 +281,13 @@ class Armor(Inventory):
     def __str__(self):
         return str(self.slot)
 
+class Potion(Inventory):
+    def __init__(self, name, healing, value):
+        super(Inventory, self).__init__()
+        self.name = name
+        self.healing = healing
+        self.value = value
+
 
 class Miscellaneous(Inventory):
     def __init__(self, name, value):
@@ -288,30 +299,64 @@ class Miscellaneous(Inventory):
         return "Miscellaneous"
 
 
-# In game items
+### IN-GAME OBJECTS ###
 
 # melee weapons
 hands = Weapon('Bare Hands', 1, 0, 0)
-shortsword = Weapon('Shortsword', 5, 0, 5)
+blunt_shortsword = Weapon('Blunt Shortsword', 5, 0, 5)
+dagger = Weapon('Dagger', 10, 0, 12)
+sharp_shortsword = Weapon('Sharp Shortsword', 15, 0, 25)
+longsword = Weapon('Longsword', 17, 0, 30)
+mace = Weapon('Mace', 28, 0 , 40)
+greatsword = Weapon('Greatsword', 30, 0, 55)
+enchanted_axe = Weapon('Enchanted Axe', 20, 30, 70)
+greataxe = Weapon('Greataxe', 35, 0, 100)
+scimitar = Weapon('Scimitar', 40, 0, 120)
+blade_of_woe = Weapon('Blade of Woe', 80, 0, 250)
 
 # magic weapons
 worn_staff = Weapon('Worn Staff', 1, 5, 5)
+wand = Weapon('Wand', 1, 12, 20)
+mages_staff = Weapon('Mage\'s Staff', 3, 25, 35)
+long_staff = Weapon('Long Staff', 3, 35, 50)
+heralds_staff = Weapon('Herald\`s Staff', 5, 50, 100)
+magis_greatstaff = Weapon('Magi\'s Greatstaff', 5, 85, 300)
 
 # head armor
 none = Armor('Nothing', 0, 0, 'Head')
 leather_cap = Armor('Leather Cap', 2, 2, 'Head')
 brass_helmet = Armor('Brass Helmet', 5, 30, 'Head')
+iron_helm = Armor('Iron Helm', 12, 60, 'Head')
+chainmail_helm = Armor('Chainmail', 30, 100, 'Head')
+horned_skullcap = Armor('Horned Skullcap', 50, 150, 'Head')
 
-# body armor
+# Body armor
+woolen_cloak = Armor('Woolen Cloak', 1, 5, 'Body')
 leather_gilet = Armor('Leather Gilet', 4, 10, 'Body')
+chainmail_vest = Armor('Chainmail Vest', 12, 30, 'Body')
+platemail_chestpiece = Armor('Platemail Chestpiece', 25, 80, 'Body')
+iron_cuirasse = Armor('Iron Cuirasse', 50, 125, 'Body')
+sanjiros_bodily_protection = Armor('Sanjiro\'s Bodily Protection', 200, 350, 'Body')
 
-# leg armor
+# Leg armor
+cloth_trousers = Armor('Cloth Trousers', 1, 3, 'Leg')
 leather_trousers = Armor('Leather Trousers', 2, 5, 'Leg')
-chainmail = Armor('Chainmail Leg Armor', 4, 40, 'Leg')
-plate = Armor('Platemail Leg Armor', 10, 100, 'Leg')
+chainmail_leggings = Armor('Chainmail Leg Armor', 4, 40, 'Leg')
+platemail_leggings = Armor('Platemail Leg Armor', 10, 100, 'Leg')
+iron_legplates = Armor('Iron Legplates', 30, 140, 'Leg')
+sanjiros_legkeepers = Armor('Sanjiro\'s Legkeepers', 120, 250, 'Leg')
+
+# Potions
+small_potion = Potion('Small Potion', 25, 10)
+medium_potion = Potion('Medium Potion', 50, 20)
+large_potion = Potion('Large Potion', 100, 40)
+super_potion = Potion('Super Potion', 200, 90)
 
 # Misc Items
 gold = Miscellaneous('Gold', 1)
+
+
+### STARTING STATS/INVENTORY ###
 
 # starting player inventory
 player_inventory = Inventory(hands, none, leather_gilet, leather_trousers)
@@ -320,19 +365,19 @@ player_inventory = Inventory(hands, none, leather_gilet, leather_trousers)
 randomised_strength = random.randrange(3, 20)
 randomised_magic = 20 - randomised_strength
 
-no_loot = {}
-
-low_level_loot = {70: leather_cap, 80: shortsword, 5: plate}
 
 # Character default stats
-player = Character('Player', 100, 120, randomised_strength, randomised_magic, 0, 1, no_loot)
+player = Character('Player', 100, 120, randomised_strength, randomised_magic, 0, 1, {})
 player_bag = {}
+
 # Monster default stats
 # name = character (name, hp, maxhp str, mg, xp, lvl)
-zombie = Character('Zombie', 100, 100, 5, 5, 20, 1, low_level_loot)
+weak_zombie = Character('Zombie', 100, 100, 5, 5, 20, 1,
+                        {50: leather_cap, 40: blunt_shortsword, 5: leather_trousers})
+medium_zombie = Character('Zombie', 150, 150, 10, 10, 50, 2,
+                          {40: brass_helmet, 40, })
 
-
-# Story
+### STORY ###
 
 print('\n\n\n\\\\\\ Nights Templar ///')
 print('©2016 Jamie Henderson\n\n\n')
@@ -357,7 +402,7 @@ action('The old man reaches behind the bar and takes out a shortsword and a worn
 while player_inventory.weapon == hands:
     player_choice_input(['Take the shortsword', 'Take the staff', 'Check your stats'])
     if choice == '1':
-        player_inventory.weapon = shortsword
+        player_inventory.weapon = blunt_shortsword
     elif choice == '2':
         player_inventory.weapon = worn_staff
     elif choice == '3':
